@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gemini Chat</title>
+    <style>
+      :root {
+        font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        color: #111;
+        background-color: #f5f5f5;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .card {
+        width: min(640px, 100%);
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+        padding: 2rem;
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 1.8rem;
+        color: #0f172a;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 120px;
+        border-radius: 12px;
+        border: 1px solid #cbd5f5;
+        padding: 1rem;
+        font-size: 1rem;
+        resize: vertical;
+        transition: border-color 0.2s ease;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+      }
+
+      button {
+        margin-top: 1rem;
+        width: 100%;
+        border: none;
+        border-radius: 12px;
+        padding: 0.9rem 1.5rem;
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        color: #fff;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      #response {
+        margin-top: 1.5rem;
+        border-radius: 12px;
+        background: #f8fafc;
+        padding: 1.25rem;
+        min-height: 100px;
+        white-space: pre-wrap;
+        line-height: 1.5;
+        border: 1px solid #e2e8f0;
+      }
+
+      .status {
+        font-size: 0.9rem;
+        color: #475569;
+        min-height: 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Trò chuyện với Gemini</h1>
+      <p class="status" id="status">Nhập câu hỏi của bạn và nhấn Gửi.</p>
+      <form id="chat-form">
+        <textarea id="message-input" placeholder="Ví dụ: Hãy gợi ý cho tôi một ý tưởng startup công nghệ."></textarea>
+        <button type="submit">Gửi</button>
+      </form>
+      <div id="response">Phản hồi sẽ hiển thị ở đây.</div>
+    </div>
+
+    <script type="module">
+      const form = document.querySelector("#chat-form");
+      const input = document.querySelector("#message-input");
+      const responseBox = document.querySelector("#response");
+      const status = document.querySelector("#status");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const message = input.value.trim();
+
+        if (!message) {
+          status.textContent = "Vui lòng nhập nội dung trước khi gửi.";
+          return;
+        }
+
+        status.textContent = "Đang gửi yêu cầu đến Gemini...";
+        responseBox.textContent = "Đang chờ phản hồi...";
+
+        try {
+          const res = await fetch("/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message }),
+          });
+
+          if (!res.ok) {
+            throw new Error("Máy chủ đang gặp sự cố.");
+          }
+
+          const data = await res.json();
+          responseBox.textContent = data.reply || "Gemini không trả về nội dung.";
+          status.textContent = "Hoàn thành ✔";
+        } catch (error) {
+          console.error(error);
+          responseBox.textContent = "Không thể nhận phản hồi. Vui lòng thử lại.";
+          status.textContent = error.message;
+        }
+      });
+    </script>
+  </body>
+</html>
+
