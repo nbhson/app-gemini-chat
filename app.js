@@ -1,15 +1,13 @@
 
-import { GoogleGenAI, Chat } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
-const API_KEY = 'AIzaSyBeJAgwoeEI-NMo_MmCOBb4lb5m_GkTgN0';
+const API_KEY = process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
-  throw new Error("API_KEY environment variable is not set.");
+  throw new Error("GEMINI_API_KEY environment variable is not set.");
 }
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
-
-console.log(API_KEY)
 
 const chat = ai.chats.create({
   model: 'gemini-2.5-flash',
@@ -27,10 +25,3 @@ export const sendMessageToGemini = async (message) => {
     return "I'm sorry, I'm having trouble connecting. Please try again later.";
   }
 };
-
-sendMessageToGemini("Bạn có thể xây dựng giao diện UI UX không?")  .then(response => {
-    console.log("Gemini's response:", response);
-  })
-  .catch(error => {
-    console.error("Error:", error);
-  });

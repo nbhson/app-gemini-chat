@@ -20,20 +20,20 @@ npm install
 
 ### 2. Cấu hình API Key
 
-Trong [app.js](file:///Users/nguyenson/Github/gemini/app.js), dự án sử dụng API Key để xác thực với dịch vụ Gemini.
+Ứng dụng đọc API key từ biến môi trường `GEMINI_API_KEY`. Tạo file `.env` (đã được gitignore) hoặc export trước khi chạy:
+
+```bash
+export GEMINI_API_KEY="your-api-key-here"
+```
 
 > [!WARNING]
-> Không nên chia sẻ hoặc commit trực tiếp API Key lên các kho lưu trữ công khai như GitHub. Để bảo mật hơn, bạn nên chuyển sang sử dụng biến môi trường (Environment Variable) như `process.env.GEMINI_API_KEY`.
+> Không commit API key vào source code. Key cũ từng bị commit — hãy thu hồi (revoke) key đó trong Google AI Studio và tạo key mới.
 
 ### 3. Chạy thử nghiệm qua Console
-
-Hiện tại, file [app.js](file:///Users/nguyenson/Github/gemini/app.js) được cấu hình để gửi một câu hỏi mặc định qua Console:
 
 ```bash
 npm start
 ```
-
-Kết quả phản hồi từ Gemini sẽ được in trực tiếp ra màn hình terminal của bạn.
 
 ---
 
