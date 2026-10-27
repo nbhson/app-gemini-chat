@@ -5,6 +5,7 @@ Một ứng dụng Node.js đơn giản kết nối với mô hình **Gemini 2.5
 ## 📁 Cấu trúc thư mục
 
 *   [app.js](file:///Users/nguyenson/Github/gemini/app.js): Script phía backend thực hiện kết nối và gửi tin nhắn đến Gemini API.
+*   [server.js](file:///Users/nguyenson/Github/gemini/server.js): Express server phục vụ giao diện tĩnh và endpoint `/api/chat`.
 *   [public/index.html](file:///Users/nguyenson/Github/gemini/public/index.html): Giao diện web người dùng để tương tác với Gemini (sử dụng HTML/CSS và Vanilla JS).
 *   `package.json`: Chứa thông tin cấu hình dự án và danh sách các thư viện phụ thuộc.
 
@@ -37,10 +38,25 @@ npm start
 
 ---
 
-## 🛠️ Lưu ý về việc kết nối Frontend & Backend
+## 🛠️ Kết nối Frontend & Backend
 
-Giao diện web trong [public/index.html](file:///Users/nguyenson/Github/gemini/public/index.html) được thiết kế để gửi yêu cầu POST đến endpoint `/api/chat`. 
+File `server.js` khởi tạo một **Express** server để:
+1. Phục vụ giao diện HTML tĩnh từ thư mục `public/`.
+2. Nhận request POST từ client tại `/api/chat` và chuyển tiếp đến Gemini thông qua `sendMessageToGemini`.
 
-Để chạy được đầy đủ tính năng trên giao diện web này, ứng dụng cần được bổ sung một Web Server (ví dụ: **Express.js**) để:
-1. Phục vụ giao diện HTML tĩnh (`public/index.html`).
-2. Nhận yêu cầu từ client gửi đến `/api/chat` và chuyển tiếp đến hàm `sendMessageToGemini` trong `app.js` trước khi phản hồi lại cho giao diện web.
+```bash
+npm start
+# Server chạy tại http://localhost:3000
+```
+
+### API Endpoint
+
+**POST `/api/chat`**
+- Body: `{ "message": "nội dung tin nhắn" }`
+- Response: `{ "reply": "phản hồi từ Gemini" }`
+
+## 📂 Cấu trúc thư mục
+
+*   [server.js](file:///Users/nguyenson/Github/gemini/server.js): Express server, phục vụ static + `/api/chat`.
+*   [app.js](file:///Users/nguyenson/Github/gemini/app.js): Logic kết nối Gemini.
+*   [public/index.html](file:///Users/nguyenson/Github/gemini/public/index.html): Giao diện web.
