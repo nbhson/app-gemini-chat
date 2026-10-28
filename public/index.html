@@ -169,7 +169,12 @@
   const statusDot = document.querySelector("#status-dot");
 
   const escapeHtml = (s) =>
-    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    String(s ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
 
   function addMessage(role, text, extraClass) {
     const wrap = document.createElement("div");
@@ -213,6 +218,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
+        signal: AbortSignal.timeout(45000), // không treo UI "Đang xử lý..." vĩnh viễn
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error || "Máy chủ đang gặp sự cố.");

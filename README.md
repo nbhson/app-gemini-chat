@@ -4,9 +4,9 @@ Một ứng dụng Node.js đơn giản kết nối với mô hình **Gemini 2.5
 
 ## 📁 Cấu trúc thư mục
 
-*   [app.js](file:///Users/nguyenson/Github/gemini/app.js): Script phía backend thực hiện kết nối và gửi tin nhắn đến Gemini API.
-*   [server.js](file:///Users/nguyenson/Github/gemini/server.js): Express server phục vụ giao diện tĩnh và endpoint `/api/chat`.
-*   [public/index.html](file:///Users/nguyenson/Github/gemini/public/index.html): Giao diện web người dùng để tương tác với Gemini (sử dụng HTML/CSS và Vanilla JS).
+*   [app.js](app.js): Script phía backend thực hiện kết nối và gửi tin nhắn đến Gemini API.
+*   [server.js](server.js): Express server phục vụ giao diện tĩnh và endpoint `/api/chat`.
+*   [public/index.html](public/index.html): Giao diện web người dùng để tương tác với Gemini (sử dụng HTML/CSS và Vanilla JS).
 *   `package.json`: Chứa thông tin cấu hình dự án và danh sách các thư viện phụ thuộc.
 
 ## 🚀 Hướng dẫn cài đặt và chạy thử
@@ -57,6 +57,6 @@ npm start
 
 ## 📂 Cấu trúc thư mục
 
-*   [server.js](file:///Users/nguyenson/Github/gemini/server.js): Express server, phục vụ static + `/api/chat`.
-*   [app.js](file:///Users/nguyenson/Github/gemini/app.js): Logic kết nối Gemini.
-*   [public/index.html](file:///Users/nguyenson/Github/gemini/public/index.html): Giao diện web.
+*   [server.js](server.js): Express server, phục vụ static + `/api/chat`.
+*   [app.js](app.js): Logic kết nối Gemini.
+*   [public/index.html](public/index.html): Giao diện web.
