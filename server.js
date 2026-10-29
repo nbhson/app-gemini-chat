@@ -12,7 +12,12 @@ const HOST = process.env.HOST || "0.0.0.0";
 app.disable("x-powered-by");
 
 // Security headers — nhẹ, không thêm dependency (thay helmet cho scope này).
-// CSP: toàn bộ JS/CSS phục vụ từ file tĩnh (không inline script), chỉ cho phép self.
+// CSP: toàn bộ JS/CSS phục vụ từ file tĩnh, không CDN, không inline script và
+// không inline style attribute (style dùng class trong style.css) → chặt nhất
+// có thể: mọi origin đều là 'self'. Round 3 đã audit: app không load lib nào
+// từ CDN (marked/DOMPurify/highlight.js đều không có — markdown tự viết), nên
+// không cần vendor lib nào. Nếu sau này thêm lib client, hãy tự host trong
+// public/vendor/ và KHÔNG thêm origin CDN vào CSP.
 app.use((req, res, next) => {
   res.set({
     "X-Content-Type-Options": "nosniff",
@@ -22,7 +27,7 @@ app.use((req, res, next) => {
     "Content-Security-Policy": [
       "default-src 'self'",
       "script-src 'self'",
-      "style-src 'self' 'unsafe-inline'",
+      "style-src 'self'",
       "img-src 'self' data:",
       "connect-src 'self'",
       "object-src 'none'",

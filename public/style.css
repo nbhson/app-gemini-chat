@@ -279,6 +279,12 @@ button {
   color: var(--text-muted);
 }
 
+/* Theme toggle sống trong sidebar-foot; cursor nằm ở đây thay vì inline style
+   để CSP có thể bỏ 'unsafe-inline' khỏi style-src */
+#theme-toggle {
+  cursor: pointer;
+}
+
 /* ---------- Main column ---------- */
 .main {
   display: flex;
