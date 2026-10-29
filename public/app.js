@@ -395,16 +395,6 @@
   });
 
   // ---------- Send ----------
-  function historyForServer() {
-    const conv = getActive();
-    if (!conv) return [];
-    // Gửi tối đa MAX_HISTORY_TURNS lượt gần nhất, chưa tính message vừa gõ
-    return conv.messages.slice(-MAX_HISTORY_TURNS).map((m) => ({
-      role: m.role === "user" ? "user" : "model",
-      text: m.text,
-    }));
-  }
-
   async function send(message, { regenerate = false } = {}) {
     let conv = getActive();
     if (!conv) {
