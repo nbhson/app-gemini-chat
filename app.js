@@ -17,6 +17,7 @@ export const AVAILABLE_MODELS = [
 ];
 
 const DEFAULT_MODEL = process.env.GEMINI_MODEL || AVAILABLE_MODELS[0].id;
+export { DEFAULT_MODEL };
 const SYSTEM_INSTRUCTION =
   "You are a helpful and friendly AI assistant. Your responses should be informative, concise, and engaging. Use markdown for formatting when appropriate.";
 const REQUEST_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 30000;
@@ -24,7 +25,7 @@ const REQUEST_TIMEOUT_MS = Number(process.env.GEMINI_TIMEOUT_MS) || 30000;
 export const resolveModel = (requested) =>
   AVAILABLE_MODELS.some((m) => m.id === requested) ? requested : DEFAULT_MODEL;
 
-export const sendMessageToGemini = async (message, { model } = {}) => {
+export const sendMessageToGemini = async (message, { model, history = [] } = {}) => {
   // Per-request chat session: TRƯỚC ĐÂY dùng 1 session toàn cục dùng chung →
   // lịch sử hội thoại leak chéo giữa các client khác nhau, và lỗi lúc module
   // load làm sập server ngay khi khởi động.
@@ -32,6 +33,15 @@ export const sendMessageToGemini = async (message, { model } = {}) => {
     model: resolveModel(model),
     config: { systemInstruction: SYSTEM_INSTRUCTION },
   });
+
+  const abortConfig = { abortSignal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) };
+
+  // Phát lại các lượt hội thoại trước để AI có ngữ cảnh (client gửi tối đa
+  // 20 lượt, đã được server validate; session vẫn là per-request nên không
+  // bao giờ leak giữa các client).
+  for (const turn of history) {
+    await chat.sendMessage({ message: turn.text, config: abortConfig });
+  }
 
   // Timeout để hung request không giữ socket vĩnh viễn
   const response = await chat.sendMessage({

@@ -33,3 +33,27 @@
 
 ### Vòng 1
 - Self-review: per-request chat session đúng ý đồ (không còn leak lịch sử chéo client); lỗi propagate lên server.js → 502 với message chung chung, stack chỉ log server-side; rate limiter có interval dọn bucket `.unref()` không chặn exit; graceful shutdown có fallback force-exit 10s.
+
+## Round 2 (2026-10-29)
+
+### Findings (audit đợt 2)
+
+| # | Severity | Vị trí | Vấn đề | Hướng xử lý |
+|---|----------|--------|--------|-------------|
+| 1 | MAJOR | app.js (working tree) | Có thay đổi CHƯA commit: model allowlist + `resolveModel` (dựng dở từ phiên trước) — client chưa có UI chọn model, không có endpoint liệt kê model | Commit riêng + hoàn thiện: GET `/api/models`, client model selector |
+| 2 | MAJOR | public/index.html | `bubble.innerHTML = text` cho TẤT CẢ message — user text chỉ an toàn nhờ escape trước; AI reply render raw text (markdown trong reply hiện nguyên ký hiệu `**`, ```) | Mini markdown renderer an toàn: escape toàn bộ trước, sau đó whitelist format (bold/italic/code/pre/heading/list/link noopener) |
+| 3 | MAJOR | public/index.html | Không có conversation history: reload là mất hết; 1 khung chat duy nhất | Đa hội thoại lưu localStorage (max 20), sidebar new/rename/delete/export |
+| 4 | MINOR | public/index.html | Không có nút stop khi request đang chạy (fetch abort), không có copy message, không regenerate | AbortController + copy + regenerate |
+| 5 | MINOR | server.js | Thiếu security headers (X-Content-Type-Options, CSP...), không có GET /api/models | Helmet-lite tự viết (không thêm dep), endpoint models |
+| 6 | MINOR | public/index.html | Toàn bộ CSS + JS inline trong index.html; header hardcode "Gemini 2.5 Flash" | Tách `public/style.css` + `public/app.js`, header hiển thị model đang chọn |
+| 7 | MINOR | server.js | 404/route lạ trả HTML mặc định express; thiếu error middleware JSON | 404 JSON + error handler cuối |
+
+### Trạng thái Round 2
+
+- [x] Plan
+- [x] Commit các thay đổi dựng dở từ round 1 (model allowlist server-side)
+- [x] Code: GET /api/models, security headers, error handler
+- [x] UI: tách file, design system (token CSS), markdown render an toàn
+- [x] Features: model selector, đa hội thoại (localStorage), copy/regenerate/stop
+- [x] Verify: node --check, smoke test server
+- [x] Self-review + commit
