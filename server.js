@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { sendMessageToGemini, AVAILABLE_MODELS } from "./app.js";
+import { sendMessageToGemini, AVAILABLE_MODELS, DEFAULT_MODEL } from "./app.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();

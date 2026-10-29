@@ -36,24 +36,32 @@
 
 ## Round 2 (2026-10-29)
 
+> Lưu ý: phiên trước bị gián đoạn — chỉ kịp commit phần server-side (model
+> allowlist, `f834565`) và viết plan; toàn bộ mục client dưới đây đã được
+> **triển khai lại và hoàn thành thật** trong Round 2 này.
+
 ### Findings (audit đợt 2)
 
 | # | Severity | Vị trí | Vấn đề | Hướng xử lý |
 |---|----------|--------|--------|-------------|
-| 1 | MAJOR | app.js (working tree) | Có thay đổi CHƯA commit: model allowlist + `resolveModel` (dựng dở từ phiên trước) — client chưa có UI chọn model, không có endpoint liệt kê model | Commit riêng + hoàn thiện: GET `/api/models`, client model selector |
-| 2 | MAJOR | public/index.html | `bubble.innerHTML = text` cho TẤT CẢ message — user text chỉ an toàn nhờ escape trước; AI reply render raw text (markdown trong reply hiện nguyên ký hiệu `**`, ```) | Mini markdown renderer an toàn: escape toàn bộ trước, sau đó whitelist format (bold/italic/code/pre/heading/list/link noopener) |
-| 3 | MAJOR | public/index.html | Không có conversation history: reload là mất hết; 1 khung chat duy nhất | Đa hội thoại lưu localStorage (max 20), sidebar new/rename/delete/export |
-| 4 | MINOR | public/index.html | Không có nút stop khi request đang chạy (fetch abort), không có copy message, không regenerate | AbortController + copy + regenerate |
-| 5 | MINOR | server.js | Thiếu security headers (X-Content-Type-Options, CSP...), không có GET /api/models | Helmet-lite tự viết (không thêm dep), endpoint models |
-| 6 | MINOR | public/index.html | Toàn bộ CSS + JS inline trong index.html; header hardcode "Gemini 2.5 Flash" | Tách `public/style.css` + `public/app.js`, header hiển thị model đang chọn |
-| 7 | MINOR | server.js | 404/route lạ trả HTML mặc định express; thiếu error middleware JSON | 404 JSON + error handler cuối |
+| 1 | MAJOR | app.js (working tree) | Thay đổi CHƯA commit từ phiên gián đoạn: model allowlist + `resolveModel` — client chưa có UI chọn model, không có endpoint liệt kê model | GET `/api/models`, client model selector |
+| 2 | MAJOR | public/index.html | `bubble.innerHTML = text` cho TẤT CẢ message; AI reply chỉ escape (mất markdown), không format | Mini markdown renderer an toàn: escape toàn bộ trước, whitelist format (bold/italic/code/pre/heading/list/link http(s) noopener) |
+| 3 | MAJOR | public/index.html | Không có conversation history: reload mất hết; AI KHÔNG có ngữ cảnh giữa các lượt (per-request session round 1 làm mất continuity) | Đa hội thoại localStorage (max 20) + client gửi `history` (server validate ≤20 lượt) |
+| 4 | MAJOR | server.js + app.js | Chat không nhớ ngữ cảnh — mỗi request chỉ gửi 1 message | `/api/chat` nhận `history[]` đã validate, phát lại vào session per-request |
+| 5 | MINOR | public/index.html | Không stop/copy/regenerate khi đang chạy | AbortController (nút send → stop), copy từng message, regenerate từ tin nhắn user cuối |
+| 6 | MINOR | server.js | Thiếu security headers, GET /api/models, 404 trả HTML, không error middleware JSON | Helmet-lite tự viết, CSP chỉ 'self' (đã tách file tĩnh), 404 JSON, error handler bắt bad-JSON/413 |
+| 7 | MINOR | public/index.html | CSS+JS inline; header hardcode model; không có theme sáng/tối | Tách `public/style.css` + `public/app.js`, design tokens, dark/light toggle có persist |
 
 ### Trạng thái Round 2
 
 - [x] Plan
-- [x] Commit các thay đổi dựng dở từ round 1 (model allowlist server-side)
-- [x] Code: GET /api/models, security headers, error handler
-- [x] UI: tách file, design system (token CSS), markdown render an toàn
-- [x] Features: model selector, đa hội thoại (localStorage), copy/regenerate/stop
-- [x] Verify: node --check, smoke test server
+- [x] Commit thay đổi dựng dở từ round 1 (đã commit sẵn: `f834565`)
+- [x] feat(server): /api/models, security headers, 404/error middleware, history — `bcf32fa`
+- [x] feat(ui): tách file, design system, theme toggle, markdown an toàn, đa hội thoại, model selector, stop/copy/regenerate/export — commit client
+- [x] Verify: `node --check` (server.js, app.js, public/app.js); smoke test server (models/404/bad-JSON/history-validate/502 khi key dummy); fix bug DEFAULT_MODEL thiếu import khi smoke test
 - [x] Self-review + commit
+
+### Verify Log
+
+- `node --check` pass cho cả 3 file JS.
+- Smoke test `PORT=3789 GEMINI_API_KEY=dummy node server.js`: GET /api/models → JSON đúng allowlist; GET /api/nope → 404 JSON; POST body hỏng → 400 "Body JSON không hợp lệ"; history sai shape → 400; POST /api/chat hợp lệ → 502 (đúng, vì key dummy); header CSP/nosniff/DENY/no-referrer xuất hiện trên /; static /app.js + /style.css → 200.
