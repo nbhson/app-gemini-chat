@@ -150,6 +150,12 @@
       while (conversations.length > MAX_CONVERSATIONS) {
         conversations.shift(); // bỏ hội thoại cũ nhất
       }
+      // Fix: nếu hội thoại đang active bị trim (trường hiếm — active thường
+      // là hội thoại mới nhất), trỏ activeId về hội thoại mới nhất còn lại
+      // thay vì để id treo → UI rơi vào empty-state giả với list còn dữ liệu.
+      if (activeId && !conversations.some((c) => c.id === activeId)) {
+        activeId = conversations.length ? conversations[conversations.length - 1].id : null;
+      }
       localStorage.setItem(STORE_KEY, JSON.stringify(conversations));
     } catch (e) {
       console.warn("Không lưu được hội thoại (localStorage?):", e);
