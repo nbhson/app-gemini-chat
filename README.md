@@ -55,6 +55,33 @@ npm start
 - Body: `{ "message": "nội dung tin nhắn" }`
 - Response: `{ "reply": "phản hồi từ Gemini" }`
 
+## 🔒 Thư viện client bên thứ ba (vendoring policy)
+
+App **không load bất kỳ thư viện nào từ CDN** (đã audit Round 3: không có
+`<script>`/`<link>`/`@import` trỏ ra ngoài — markdown renderer, escape, highlight
+đều tự viết bằng vanilla JS). Vì vậy CSP có thể chặt ở mức:
+
+```
+default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; ...
+```
+
+(không có origin CDN, không `'unsafe-inline'` cho script lẫn style — style inline
+đã chuyển hết vào `public/style.css`).
+
+Nếu sau này cần thêm thư viện client (ví dụ marked, DOMPurify, highlight.js):
+
+1. **Tự host, không dùng CDN** — tải bản đã pin version vào `public/vendor/`,
+   ví dụ `public/vendor/marked-12.0.2.min.js`, kèm file `LICENSE` của lib cùng
+   thư mục. Các lib trên đều MIT/BSD-3 nên compatible.
+2. Tham chiếu local: `<script src="/vendor/marked-12.0.2.min.js"></script>` —
+   CSP `script-src 'self'` đã đủ, **không thêm** origin CDN vào CSP.
+3. **Cách update version vendored**: thay file mới (giữ nguyên tên có version
+   trong tên file hoặc bump tên), update tham chiếu trong `public/index.html`,
+   kèm file LICENSE mới, rồi smoke test lại (xem CSP header trên `/` vẫn chỉ
+   chứa `'self'`).
+4. Pin version cụ thể (không dùng bản "latest") và kiểm tra
+   [snyk.io](https://snyk.io) hoặc advisory của lib trước khi upgrade.
+
 ## 📂 Cấu trúc thư mục
 
 *   [server.js](server.js): Express server, phục vụ static + `/api/chat`.

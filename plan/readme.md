@@ -65,3 +65,55 @@
 
 - `node --check` pass cho cả 3 file JS.
 - Smoke test `PORT=3789 GEMINI_API_KEY=dummy node server.js`: GET /api/models → JSON đúng allowlist; GET /api/nope → 404 JSON; POST body hỏng → 400 "Body JSON không hợp lệ"; history sai shape → 400; POST /api/chat hợp lệ → 502 (đúng, vì key dummy); header CSP/nosniff/DENY/no-referrer xuất hiện trên /; static /app.js + /style.css → 200.
+
+## Round 3 (2026-10-29) — follow-up "vendor CDN libs"
+
+### Finding chính: scope ghi "CSP allows scripts from two CDNs" KHÔNG đúng với repo
+
+- Audit toàn bộ `public/` (index.html, app.js, style.css), `server.js`, `app.js`,
+  README + toàn bộ git history (`git log -S cdn/jsdelivr`, `git grep -i cdn` ở
+  mọi commit): **không có bất kỳ lib nào load từ CDN** — không marked, không
+  DOMPurify, không highlight.js, không font ngoài, không `@import` remote.
+  Markdown renderer là tự viết (escape-first + whitelist), không phụ thuộc lib.
+- Ban đầu (initial commit) chỉ có 1 inline `<script type="module">` thuần JS;
+  Round 2 đã tách ra `public/app.js` + `public/style.css` và CSP đã là
+  `script-src 'self'`.
+- Kết luận: **không cần vendor lib nào** — `public/vendor/` không tồn tại và
+  không cần tạo. Lý do ghi lại ở đây và trong README để round sau không lặp
+  lại nhầm scope đã lỗi thời.
+- Việc còn lại làm được (đã làm): siết CSP nốt lỏng cuối cùng — bỏ
+  `'unsafe-inline'` khỏi `style-src` (chỉ còn vì 1 inline `style="cursor:pointer"`
+  trên `#theme-toggle`; chuyển thành rule `#theme-toggle` trong style.css).
+
+### Việc đã làm
+
+| # | Loại | File | Nội dung |
+|---|------|------|----------|
+| 1 | audit | toàn repo | Xác nhận 0 CDN lib (cả working tree lẫn history) → vendoring N/A, ghi lý do |
+| 2 | hardening | server.js | CSP: `style-src 'self'` — bỏ `'unsafe-inline'`; comment ghi rõ policy "không CDN, tự host trong public/vendor/ nếu thêm lib" |
+| 3 | refactor | public/index.html + style.css | Bỏ inline style attr duy nhất → `#theme-toggle { cursor: pointer }` trong CSS |
+| 4 | fix | public/app.js | `persist()`: guard `activeId` treo khi hội thoại active bị trim (trường >20 hội thoại) — trước đây UI có thể rơi empty-state giả với list còn dữ liệu |
+| 5 | docs | README.md | Section "Thư viện client bên thứ ba (vendoring policy)": cách vendor/update lib pin version + LICENSE vào `public/vendor/`, không thêm origin CDN vào CSP |
+
+### Verify Log (Round 3)
+
+- `node --check` pass: server.js, app.js, public/app.js.
+- Smoke test `PORT=3789 GEMINI_API_KEY=dummy node server.js`:
+  - CSP header trên `/` = `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'` — **0 origin CDN, 0 unsafe-inline**.
+  - `/` → 200 text/html; `/app.js` → 200 JS; `/style.css` → 200 text/css; HTML phục vụ không còn `style=` attribute, chỉ tham chiếu `/style.css` + `/app.js`.
+  - `/api/models` → JSON đúng allowlist; `/api/nope` → 404; `/vendor/nope.js` → 404 JSON; POST `/api/chat` → 502 (đúng với dummy key); request thứ 21 → 429 (rate limit hoạt động).
+- Không tìm thấy bug mới ngoài #4.
+
+### Trạng thái Round 3
+
+- [x] Audit CDN/vendoring
+- [x] CSP chặt (bỏ unsafe-inline) + fix persist() + docs
+- [x] Smoke test live
+- [x] Commit (local only, KHÔNG push)
+
+### Rủi ro còn lại
+
+- Không có rủi ro CDN (không dùng CDN). `'unsafe-inline'` đã bỏ khỏi style-src;
+  nếu sau này thêm inline style attr trong HTML mà quên, CSP sẽ block style đó
+  (fail-closed, không phải lỏng).
+- Rate limit vẫn in-memory (single-instance) — đã ghi ở Round 1.
