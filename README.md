@@ -1,5 +1,7 @@
 # Gemini Chat App
 
+[![CI](https://github.com/nbhson/app-gemini-chat/actions/workflows/ci.yml/badge.svg)](https://github.com/nbhson/app-gemini-chat/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Một ứng dụng Node.js đơn giản kết nối với mô hình **Gemini 2.5 Flash** thông qua SDK chính thức mới nhất của Google (`@google/genai`).
 
 ## 📁 Cấu trúc thư mục
